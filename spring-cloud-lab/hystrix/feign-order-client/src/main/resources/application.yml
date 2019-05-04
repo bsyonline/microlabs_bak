@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: feign-order-client
+server:
+  port: 8388
+feign:
+  hystrix:
+    enabled: true

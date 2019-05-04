@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: order-client
+server:
+  port: 8377
+management:
+  endpoint:
+    health:
+      show-details: always

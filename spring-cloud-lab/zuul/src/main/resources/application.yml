@@ -1,0 +1,49 @@
+server:
+  port: 8088
+spring:
+  application:
+    name: zuul
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+zuul:
+  routes:
+    order:
+      path: /orders
+      serviceId: order-service
+    order-getById:
+      path: /orders/**
+      serviceId: order-service
+    order-getByType:
+      path: /orders/types/*
+      serviceId: order-service
+    service1:
+      path: /hello
+      serviceId: order-service
+    service2:
+      path: /world
+      serviceId: order-service
+    service3:
+      path: /hello/world
+      serviceId: order-service
+    service4:
+      path: /hello/*/world
+      serviceId: order-service
+    service5:
+      path: /hello/**/world
+      serviceId: order-service
+    service6:
+      path: /hello/*/world/**
+      serviceId: order-service
+    service7:
+      path: /hello/**/world/**
+      serviceId: order-service
+    service8:
+      path: /risk/**
+      serviceId: order-service
+    order-service:
+      path: /spring/cloud
+      serviceId: order-service
