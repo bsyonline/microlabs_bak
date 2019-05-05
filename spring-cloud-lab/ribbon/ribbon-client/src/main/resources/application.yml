@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: ribbon-client
+server:
+  port: 8422
+ribbon:
+  eager-load:
+    enabled: true

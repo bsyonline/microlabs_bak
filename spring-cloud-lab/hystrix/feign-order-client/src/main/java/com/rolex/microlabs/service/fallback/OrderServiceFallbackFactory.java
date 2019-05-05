@@ -4,7 +4,7 @@
 package com.rolex.microlabs.service.fallback;
 
 import com.rolex.microlabs.model.Order;
-import com.rolex.microlabs.service.OrderService;
+import com.rolex.microlabs.service.OrderClient;
 import feign.hystrix.FallbackFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,14 +15,15 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class OrderServiceFallbackFactory implements FallbackFactory<OrderService> {
+public class OrderServiceFallbackFactory implements FallbackFactory<OrderClient> {
+    private static final Order order = new Order("0", "", "0");
     @Override
-    public OrderService create(Throwable throwable) {
-        return new OrderService() {
+    public OrderClient create(Throwable throwable) {
+        return new OrderClient() {
             @Override
             public Order findById(String id) {
                 log.error("fallback findById", throwable);
-                return new Order("0", "", "0");
+                return order;
             }
         };
     }

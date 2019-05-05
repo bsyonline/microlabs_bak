@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: turbine
+server:
+  port: 8500
+turbine:
+  # 要监控的微服务列表，多个用,分隔
+  appConfig: order-client,feign-order-client
+  clusterNameExpression: "'default'"
