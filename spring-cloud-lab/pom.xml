@@ -21,6 +21,7 @@
         <module>gateway</module>
         <module>ribbon</module>
         <module>hystrix</module>
+        <module>sleuth</module>
     </modules>
 
     <properties>
