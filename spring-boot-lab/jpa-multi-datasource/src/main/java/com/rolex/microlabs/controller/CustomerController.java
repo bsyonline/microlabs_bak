@@ -42,7 +42,7 @@ public class CustomerController {
         return ImmutableList.copyOf(bookRepository.findByCustomerId(customerId));
     }
 
-    @GetMapping("/initData")
+    @GetMapping("/init")
     public String init() {
         customerRepository.deleteAll();
         bookRepository.deleteAll();
