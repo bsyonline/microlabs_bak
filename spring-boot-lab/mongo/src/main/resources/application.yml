@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: mongo
+mongodb:
+  url: mongodb://localhost:27017
+  database: test
+  collection: order

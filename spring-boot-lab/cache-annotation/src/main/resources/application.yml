@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: cache-annotation
+  datasource:
+    url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 123456
+  jpa:
+    show-sql: true
+
+server:
+  port: 0
+redis:
+  pool:
+    host: localhost
+    port: 6379
+    timeout: 3000
+    password:
+    maxTotal: 10
+    maxIdle: 10
+    maxWait: 3
