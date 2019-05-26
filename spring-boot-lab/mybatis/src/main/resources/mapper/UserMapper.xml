@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.rolex.microlabs.dao.UserDao">
+    <insert id="save" parameterType="com.rolex.microlabs.model.User">
+        insert into t_user
+          (name, age)
+        values
+          (#{name}, #{age})
+    </insert>
+
+    <insert id ="batchSave" parameterType="java.util.List" >
+        insert into t_user
+        (name, age)
+        values
+        <foreach collection ="list" item="user" index= "index" separator =",">
+            (
+            #{user.name},
+            #{user.age}
+            )
+        </foreach >
+    </insert >
+</mapper>
