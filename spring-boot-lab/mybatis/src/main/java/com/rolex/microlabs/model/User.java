@@ -1,6 +1,7 @@
-package com.rolex.microlabs.model;/*
+/*
  * Copyright (C) 2019 bsyonline
  */
+package com.rolex.microlabs.model;
 
 import lombok.Data;
 

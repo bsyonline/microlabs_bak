@@ -16,6 +16,7 @@
         <module>mongo</module>
         <module>mybatis</module>
         <module>jpa-multi-datasource</module>
+        <module>hibernate-validator</module>
     </modules>
 
     <properties>
