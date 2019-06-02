@@ -1,0 +1,18 @@
+template header
+type
+discount
+
+package rules
+
+import com.rolex.microlabs.model.Product
+
+template "products"
+
+rule "show discount for offered type @{type}"
+	when
+		productObject: Product(type=="@{type}")
+	then
+		productObject.setDiscount(@{discount});
+	end
+
+end template

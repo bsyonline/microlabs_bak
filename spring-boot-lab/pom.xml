@@ -17,6 +17,9 @@
         <module>mybatis</module>
         <module>jpa-multi-datasource</module>
         <module>hibernate-validator</module>
+        <module>jpa</module>
+        <module>drools</module>
+        <module>proguard</module>
     </modules>
 
     <properties>

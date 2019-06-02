@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: drools
+  datasource:
+    url: jdbc:mysql:///test
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+server:
+  port: 8067

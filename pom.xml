@@ -12,6 +12,7 @@
         <module>spring-cloud-lab</module>
         <module>spring-boot-lab</module>
         <module>slf4j</module>
+        <module>java8</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
