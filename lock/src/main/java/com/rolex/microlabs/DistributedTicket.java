@@ -9,10 +9,7 @@ import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.util.Collections;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
+import javax.annotation.PostConstruct;
 
 /**
  * @author rolex
@@ -24,31 +21,18 @@ public class DistributedTicket {
 
     @Autowired
     JedisPool jedisPool;
-    Timer expireTimer;
+    RedisDistributedLock lock;
+
+    @PostConstruct
+    public void init() {
+        lock = new RedisDistributedLock(jedisPool);
+    }
 
     public void reduce(int num) {
         String lockKey = "ticket_lock";
-        String lockId = UUID.randomUUID().toString();
         Jedis jedis = jedisPool.getResource();
         try {
-//            Long result = 0L;
-//            while (0 == result) {
-//                result = jedis.setnx(lockKey, lockId);
-//                jedis.expire(lockKey, 10);
-//            }
-            String result = "";
-            while (!"OK".equals(result)) {
-                int expire = 10000;
-                result = jedis.set(lockKey, lockId, "NX", "PX", 10000);
-                int period = 10000 / 3;
-                expireTimer = new Timer();
-                expireTimer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        jedis.expire(lockKey, expire);
-                    }
-                }, 0, period);
-            }
+            lock.lock(lockKey);
             boolean buyTicket = false;
             Integer tickets = Integer.parseInt(jedis.get("ticket"));
             if (tickets - num >= 0) {
@@ -66,12 +50,7 @@ public class DistributedTicket {
                 }
             }
         } finally {
-//            if (lockId.equals(jedis.get(lockKey))) {
-//                jedis.del(lockKey);
-//            }
-            String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-            jedis.eval(script, Collections.singletonList(lockKey), Collections.singletonList(lockId));
-            expireTimer.cancel();
+            lock.unlock(lockKey);
         }
     }
 }

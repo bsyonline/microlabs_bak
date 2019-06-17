@@ -30,7 +30,7 @@ public class TicketClient {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    restTemplate.exchange("http://localhost:8888/tickets", HttpMethod.GET, null, String.class);
+                    restTemplate.exchange("http://localhost:8082/tickets", HttpMethod.GET, null, String.class);
                 }
             }).start();
             latch.countDown();
