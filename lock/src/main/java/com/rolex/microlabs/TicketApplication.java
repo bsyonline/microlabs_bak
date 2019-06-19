@@ -3,6 +3,8 @@
  */
 package com.rolex.microlabs;
 
+import org.redisson.Redisson;
+import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,7 +31,8 @@ public class TicketApplication {
 
     @GetMapping("/tickets")
     public String ticket() {
-        distributedTicket.reduce(1);
+//        distributedTicket.reduceWithJedisLock(1);
+        distributedTicket.reduceWithRedissionLock(1);
         return "OK";
     }
 
@@ -45,4 +48,12 @@ public class TicketApplication {
         config.setTestOnReturn(true);
         return new JedisPool(config, host, port);
     }
+
+    @Bean
+    public Redisson redissonSentinel() {
+        Config config = new Config();
+        config.useSingleServer().setAddress("redis://localhost:6379");
+        return (Redisson) Redisson.create(config);
+    }
+
 }
