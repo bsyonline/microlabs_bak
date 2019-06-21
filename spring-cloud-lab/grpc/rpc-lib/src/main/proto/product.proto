@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.rolex.microlabs.grpc";
+option java_outer_classname = "ProductProto";
+option objc_class_prefix = "HLW";
+
+
+service ProductService {
+  rpc FindProductByClientId (ProductRequest) returns (ProductResponse) {}
+}
+
+
+message ProductRequest {
+  string user_id = 1;
+}
+
+
+message ProductResponse {
+  uint64 product_id = 1;
+  string user_id = 2;
+  string client_id = 3;
+}
