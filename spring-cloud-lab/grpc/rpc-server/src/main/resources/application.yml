@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: rpc-server
+server:
+  port: 9020
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+grpc:
+  server:
+    port: 9021
+    host: ${spring.application.name}
