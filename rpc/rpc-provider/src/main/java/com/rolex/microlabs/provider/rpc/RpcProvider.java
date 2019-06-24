@@ -14,7 +14,12 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +31,8 @@ import java.util.Map;
 public class RpcProvider {
     private Map<String, Object> handlerMap = new HashMap<>();
 
-    public void start() {
+    public void start() throws UnknownHostException {
+
         Object serviceBean = new UserServiceImpl();
         String serviceName = "com.rolex.microlabs.consumer.service.UserService";
         handlerMap.put(serviceName, serviceBean);
@@ -49,18 +55,14 @@ public class RpcProvider {
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
             bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
             // 获取 RPC 服务器的 IP 地址与端口号
-//            String[] addressArray = StringUtil.split(serviceAddress, ":");
-            String ip = "localhost";
-            int port = 8081;
+            String ip = getHost();
+            int port = 8001;
             // 启动 RPC 服务器
             ChannelFuture future = bootstrap.bind(ip, port).sync();
             // 注册 RPC 服务地址
-//            if (serviceRegistry != null) {
-//                for (String interfaceName : handlerMap.keySet()) {
-//                    serviceRegistry.register(interfaceName, serviceAddress);
-//                    LOGGER.debug("register service: {} => {}", interfaceName, serviceAddress);
-//                }
-//            }
+            Jedis jedis = jedisPool().getResource();
+            jedis.set(serviceName, ip + ":" + port);
+            log.info("register service to registry center, service={}, host={}, port={}", serviceName, ip, port);
             log.info("server started on port {}", port);
             // 关闭 RPC 服务器
             future.channel().closeFuture().sync();
@@ -72,7 +74,23 @@ public class RpcProvider {
         }
     }
 
-    public static void main(String[] args) {
+    private String getHost() throws UnknownHostException {
+        return InetAddress.getLocalHost().getHostAddress().toString();
+    }
+
+    public JedisPool jedisPool() {
+        String host = "localhost";
+        int port = 6379;
+        JedisPoolConfig config = new JedisPoolConfig();
+        config.setMaxTotal(50);
+        config.setMaxIdle(10);
+        config.setMaxWaitMillis(1000 * 100);
+        config.setTestOnBorrow(true);
+        config.setTestOnReturn(true);
+        return new JedisPool(config, host, port);
+    }
+
+    public static void main(String[] args) throws UnknownHostException {
         new RpcProvider().start();
     }
 }
