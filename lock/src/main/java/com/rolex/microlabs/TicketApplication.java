@@ -10,6 +10,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -29,10 +30,10 @@ public class TicketApplication {
         SpringApplication.run(TicketApplication.class, args);
     }
 
-    @GetMapping("/tickets")
-    public String ticket() {
-//        distributedTicket.reduceWithJedisLock(1);
-        distributedTicket.reduceWithRedissionLock(1);
+    @GetMapping("/tickets/{user_id}")
+    public String ticket(@PathVariable("user_id") int userId) {
+        distributedTicket.reduceWithJedisLock(userId, 1);
+//        distributedTicket.reduceWithRedissionLock(userId, 1);
         return "OK";
     }
 

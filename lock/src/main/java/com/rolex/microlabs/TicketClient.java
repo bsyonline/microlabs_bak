@@ -22,6 +22,7 @@ public class TicketClient {
         RestTemplate restTemplate = new RestTemplate();
         CountDownLatch latch = new CountDownLatch(20);
         for (int i = 0; i < 20; i++) {
+            int userId = i + 1;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -30,7 +31,7 @@ public class TicketClient {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    restTemplate.exchange("http://localhost:8082/tickets", HttpMethod.GET, null, String.class);
+                    restTemplate.exchange("http://localhost:8082/tickets/" + userId, HttpMethod.GET, null, String.class);
                 }
             }).start();
             latch.countDown();

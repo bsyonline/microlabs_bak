@@ -3,6 +3,7 @@
  */
 package com.rolex.microlabs;
 
+import com.rolex.microlabs.lock.RedisDistributedLock;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
@@ -10,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author rolex
@@ -23,63 +22,55 @@ public class DistributedTicket {
 
     @Autowired
     JedisPool jedisPool;
-    RedisDistributedLock lock;
 
-    @PostConstruct
-    public void init() {
-        lock = new RedisDistributedLock(jedisPool);
-    }
-
-    public void reduceWithJedisLock(int num) {
-        String lockKey = "ticket_lock";
+    public void reduceWithJedisLock(int userId, int num) {
+        String lockKey = "jedis_ticket_lock";
         Jedis jedis = jedisPool.getResource();
+        RedisDistributedLock lock = new RedisDistributedLock(lockKey);
         try {
-            lock.lock(lockKey);
-            boolean buyTicket = false;
+            lock.lock();
+            boolean isBought = false;
             Integer tickets = Integer.parseInt(jedis.get("ticket"));
             if (tickets - num >= 0) {
                 tickets = tickets - num;
                 jedis.set("ticket", String.valueOf(tickets));
-                log.info("用户{}买到1张票,还剩{}张票", Thread.currentThread().getId(), tickets);
-                buyTicket = true;
+                log.info("用户{}买到1张票,还剩{}张票", userId, tickets);
+                isBought = true;
             } else {
-                log.info("余票不足,用户{}没有买到票", Thread.currentThread().getId());
+                log.info("余票不足,用户{}没有买到票", userId, tickets);
             }
-            if (buyTicket) {
-                if (Thread.currentThread().getId() % 2 == 0) {
-                    // vip加500积分
-                    log.info("用户{}是VIP,获得500积分", Thread.currentThread().getId());
-                }
+            if (isBought && Thread.currentThread().getId() % 2 == 0) {
+                // vip加积分
+                log.info("用户{}是VIP，获得500积分", userId);
             }
         } finally {
-            lock.unlock(lockKey);
+            lock.unlock();
         }
     }
 
     @Autowired
     Redisson redisson;
 
-    public void reduceWithRedissionLock(int num) {
-        String lockKey = "ticket_lock";
+    public void reduceWithRedissionLock(int userId, int num) {
+        String lockKey = "redission_ticket_lock";
         Jedis jedis = jedisPool.getResource();
         RLock lock = redisson.getLock(lockKey);
+        String msg = "用户{}";
         try {
             lock.lock();
-            boolean buyTicket = false;
+            boolean isBought = false;
             Integer tickets = Integer.parseInt(jedis.get("ticket"));
             if (tickets - num >= 0) {
                 tickets = tickets - num;
                 jedis.set("ticket", String.valueOf(tickets));
-                log.info("用户{}买到1张票,还剩{}张票", Thread.currentThread().getId(), tickets);
-                buyTicket = true;
+                log.info("用户{}买到1张票,还剩{}张票", userId, tickets);
+                isBought = true;
             } else {
-                log.info("余票不足,用户{}没有买到票", Thread.currentThread().getId());
+                log.info("余票不足,用户{}没有买到票", userId, tickets);
             }
-            if (buyTicket) {
-                if (Thread.currentThread().getId() % 2 == 0) {
-                    // vip加500积分
-                    log.info("用户{}是VIP,获得500积分", Thread.currentThread().getId());
-                }
+            if (isBought && Thread.currentThread().getId() % 2 == 0) {
+                // vip加积分
+                log.info("用户{}是VIP，获得500积分", userId);
             }
         } finally {
             lock.unlock();
