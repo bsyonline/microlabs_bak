@@ -32,8 +32,9 @@ public class TicketApplication {
 
     @GetMapping("/tickets/{user_id}")
     public String ticket(@PathVariable("user_id") int userId) {
-        distributedTicket.reduceWithJedisLock(userId, 1);
+//        distributedTicket.reduceWithJedisLock(userId, 1);
 //        distributedTicket.reduceWithRedissionLock(userId, 1);
+        distributedTicket.reduceWithZkLock(userId, 1);
         return "OK";
     }
 

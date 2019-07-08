@@ -1,18 +1,19 @@
+/*
+ * Copyright (C) 2018 bsyonline
+ */
 package com.rolex.microlabs.lock;
 
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author rolex
- * @since 2019
+ * @since 2018
  */
 public interface DistributedLock {
 
     void unlock() throws LockingException;
 
-    boolean tryLock(int timeout, TimeUnit unit) throws LockingException;
-
-    boolean tryLock() throws LockingException;
+    boolean tryLock(long timeout, TimeUnit unit) throws LockingException;
 
     void lock() throws LockingException;
 

@@ -20,7 +20,7 @@ public class ProductService extends ProductServiceGrpc.ProductServiceImplBase {
     public void findProductByClientId(ProductRequest request, StreamObserver<ProductResponse> responseObserver) {
         ProductResponse helloResponse = ProductResponse.newBuilder()
                 .setUserId(request.getUserId())
-                .setId(11)
+                .setProductId(11)
                 .setProductName("grpc")
                 .build();
         responseObserver.onNext(helloResponse);

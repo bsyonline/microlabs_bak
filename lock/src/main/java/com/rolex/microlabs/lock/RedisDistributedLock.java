@@ -13,16 +13,19 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 
 /**
  * @author rolex
  * @since 2019
  */
 @Slf4j
-public class RedisDistributedLock implements DistributedLock {
+public class RedisDistributedLock implements Lock {
 
     ThreadLocal<String> context = new ThreadLocal<>();
     static JedisPool jedisPool = jedisPool();
+    int expire = 100;
     Timer timer;
     String lockKey;
 
@@ -30,8 +33,13 @@ public class RedisDistributedLock implements DistributedLock {
         this.lockKey = lockKey;
     }
 
+    public RedisDistributedLock(String lockKey, int expire) {
+        this(lockKey);
+        this.expire = expire;
+    }
+
     @Override
-    public void lock() throws LockingException {
+    public void lock() {
         while (!tryLock()) {
             try {
                 Thread.sleep(100);
@@ -42,11 +50,16 @@ public class RedisDistributedLock implements DistributedLock {
     }
 
     @Override
-    public boolean tryLock(int expire, TimeUnit unit) throws LockingException {
+    public void lockInterruptibly() throws InterruptedException {
+
+    }
+
+    @Override
+    public boolean tryLock() {
         String lockId = UUID.randomUUID().toString();
         Jedis jedis = jedisPool.getResource();
         try {
-            String result = jedis.set(lockKey, lockId, "NX", "PX", unit.toMillis(expire));
+            String result = jedis.set(lockKey, lockId, "NX", "PX", expire);
             if ("OK".equals(result)) {
                 context.set(lockId);
                 timer = new Timer();
@@ -55,12 +68,12 @@ public class RedisDistributedLock implements DistributedLock {
                     public void run() {
                         Jedis jedis = jedisPool.getResource();
                         try {
-                            jedis.expire(lockKey, (int) unit.toSeconds(expire));
+                            jedis.expire(lockKey, expire / 1000);
                         } finally {
                             jedis.close();
                         }
                     }
-                }, 0, unit.toMillis(expire) / 3);
+                }, 0, expire / 3);
                 return true;
             }
             return false;
@@ -73,12 +86,12 @@ public class RedisDistributedLock implements DistributedLock {
     }
 
     @Override
-    public boolean tryLock() throws LockingException {
-        return tryLock(100, TimeUnit.MILLISECONDS);
+    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+        return false;
     }
 
     @Override
-    public void unlock() throws LockingException {
+    public void unlock() {
         Jedis jedis = jedisPool.getResource();
         try {
             String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
@@ -91,6 +104,11 @@ public class RedisDistributedLock implements DistributedLock {
             timer.cancel();
             jedis.close();
         }
+    }
+
+    @Override
+    public Condition newCondition() {
+        return null;
     }
 
     public static JedisPool jedisPool() {
