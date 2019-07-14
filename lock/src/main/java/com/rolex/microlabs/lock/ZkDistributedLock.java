@@ -24,44 +24,44 @@ import java.util.concurrent.locks.Lock;
  */
 @Slf4j
 public class ZkDistributedLock implements Lock {
-
+    
     ZkClient zkClient;
     String lockPath;
     ThreadLocal<String> currentNodeThreadLocal = new ThreadLocal<>();
     ThreadLocal<Boolean> hasLockThreadLocal = new ThreadLocal<>();
     CountDownLatch latch;
-
+    
     public ZkDistributedLock(String lockKey) {
         this.zkClient = createZkClient();
         this.lockPath = "/lock/" + lockKey;
         this.latch = new CountDownLatch(1);
-        //创建锁的上级路径
-        createNode(lockPath);
+        
         hasLockThreadLocal.set(false);
     }
-
+    
     private ZkClient createZkClient() {
         return new ZkClient("localhost:2181");
     }
-
+    
     @Override
     public void lock() {
+        //创建锁的上级路径
+        createNode(lockPath);
         //在锁路径下创建临时顺序节点
         String currentNode = zkClient.create(lockPath + "/lock_", null, CreateMode.EPHEMERAL_SEQUENTIAL);
         if (currentNode.contains("/")) {
             String currentId = currentNode.substring(currentNode.lastIndexOf("/") + 1);
             currentNodeThreadLocal.set(currentId);
         }
-        System.out.println("create ephemeral sequential node " + currentNode);
-//        log.debug("create ephemeral sequential node {}", currentNode);
+        log.debug("create ephemeral sequential node {}", currentNode);
         tryLock();
     }
-
+    
     @Override
     public void lockInterruptibly() throws InterruptedException {
-
+        
     }
-
+    
     @Override
     public boolean tryLock() {
         //获取lock路径下的所有节点
@@ -74,12 +74,11 @@ public class ZkDistributedLock implements Lock {
         //获取当前节点的索引，如果index最小，则可以获得锁
         int nodeIndex = sortedNodes.indexOf(currentNodeThreadLocal.get());
         if (nodeIndex < 0) {
-            System.out.println("node '" + currentNodeThreadLocal.get() + "' is not exists");
-//            log.warn("node '{}' is not exists", currentNodeThreadLocal.get());
+            log.warn("node '{}' is not exists", currentNodeThreadLocal.get());
         } else if (nodeIndex == 0) {
             hasLockThreadLocal.set(true);
             latch.countDown();
-            System.out.println("node '" + currentNodeThreadLocal.get() + "' 获得锁");
+            log.debug("node '{}' 获得锁", currentNodeThreadLocal.get());
             return true;
         } else {
             //如果不是最小节点，添加监听前一个节点的事件，然后阻塞等待
@@ -87,47 +86,47 @@ public class ZkDistributedLock implements Lock {
             zkClient.subscribeDataChanges(prevNode, new IZkDataListener() {
                 @Override
                 public void handleDataChange(String dataPath, Object data) throws Exception {
-
+                    
                 }
-
+                
                 @Override
                 public void handleDataDeleted(String dataPath) throws Exception {
-                    System.out.println(dataPath+"Data Deleted 事件, prevNode '" + prevNode + "' 被删除，" + currentNodeThreadLocal.get() + "获得锁");
+                    log.debug("Data Deleted 事件: prevNode '{}' 被删除,{}获得锁", dataPath, currentNodeThreadLocal.get());
                     hasLockThreadLocal.set(true);
                     latch.countDown();
                 }
             });
-            System.out.println("node '"+currentNodeThreadLocal.get() + "'不是最小节点,没有获得锁，监听" + prevNode + ",等待" + prevNode + "被删除");
+            log.debug("node '{}'不是最小节点,没有获得锁,监听{},等待{}被删除", currentNodeThreadLocal.get(), prevNode, prevNode);
             try {
                 latch.await();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println("node '" + currentNodeThreadLocal.get() + "' 没有获得锁");
+            log.debug("node '{}' 没有获得锁", currentNodeThreadLocal.get());
         }
-
+        
         return false;
     }
-
+    
     @Override
     public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
         return false;
     }
-
+    
     @Override
     public void unlock() {
         zkClient.delete(lockPath + "/" + currentNodeThreadLocal.get());
-        System.out.println("删除节点" + lockPath + "/" + currentNodeThreadLocal.get());
+        log.debug("删除节点{}", lockPath + "/" + currentNodeThreadLocal.get());
         currentNodeThreadLocal.remove();
         hasLockThreadLocal.set(false);
         latch = new CountDownLatch(1);
     }
-
+    
     @Override
     public Condition newCondition() {
         return null;
     }
-
+    
     /**
      * 创建lock目录，如果不存在递归创建上一级
      *
