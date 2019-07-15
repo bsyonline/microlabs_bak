@@ -3,7 +3,7 @@
  */
 package com.rolex.microlabs.event;
 
-import org.springframework.context.ApplicationContext;
+import com.rolex.microlabs.model.Order;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -11,7 +11,7 @@ import org.springframework.context.ApplicationEvent;
  * @since 2019
  */
 public class OrderCreatedEvent extends ApplicationEvent {
-    public OrderCreatedEvent(ApplicationContext context) {
-        super(context);
+    public OrderCreatedEvent(Order order) {
+        super(order);
     }
 }

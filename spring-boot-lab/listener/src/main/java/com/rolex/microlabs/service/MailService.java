@@ -16,6 +16,6 @@ public class MailService implements ApplicationListener<OrderCreatedEvent> {
 
     @Override
     public void onApplicationEvent(OrderCreatedEvent orderCreatedEvent) {
-        System.out.println("send mail");
+        System.out.println("send mail: " + orderCreatedEvent.getSource());
     }
 }
