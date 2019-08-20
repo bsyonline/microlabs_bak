@@ -17,6 +17,7 @@
         <module>lock</module>
         <module>netty</module>
         <module>rpc</module>
+        <module>cache</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
