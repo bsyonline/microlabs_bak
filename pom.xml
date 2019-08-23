@@ -18,6 +18,7 @@
         <module>netty</module>
         <module>rpc</module>
         <module>cache</module>
+        <module>springlite</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
