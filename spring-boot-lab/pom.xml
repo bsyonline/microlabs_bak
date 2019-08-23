@@ -21,6 +21,7 @@
         <module>drools</module>
         <module>proguard</module>
         <module>listener</module>
+        <module>design-pattern</module>
     </modules>
 
     <properties>
