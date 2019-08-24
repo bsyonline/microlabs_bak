@@ -22,6 +22,7 @@
         <module>proguard</module>
         <module>listener</module>
         <module>design-pattern</module>
+        <module>rabbitmq</module>
     </modules>
 
     <properties>
