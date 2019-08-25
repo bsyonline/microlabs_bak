@@ -26,9 +26,14 @@ public class PublisherApplication {
     @Autowired
     Publisher publisher;
 
-    @GetMapping("/mq")
-    public void send() {
-        publisher.send("msg-" + new Date());
+    @GetMapping("/dl")
+    public void sendDLMsg() {
+        publisher.sendDeadLetterMsg("msg-" + new Date());
+    }
+
+    @GetMapping("/delay")
+    public void sendDelayMsg() {
+        publisher.sendDelayMsg("msg-" + new Date());
     }
 
 }
