@@ -10,6 +10,7 @@ spring:
     listener:
       simple:
         acknowledge-mode: manual
+        default-requeue-rejected: false
       direct:
         acknowledge-mode: manual
     publisher-confirms: true
@@ -20,4 +21,4 @@ spring:
         enabled: true
         max-attempts: 3
 server:
-  port: 8099
+  port: 0

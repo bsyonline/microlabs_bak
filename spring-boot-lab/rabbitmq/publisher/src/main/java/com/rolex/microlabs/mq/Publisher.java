@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.UUID;
 
+import static com.rolex.microlabs.config.RabbitmqConfig.HELLO_EXCHANGE;
+import static com.rolex.microlabs.config.RabbitmqConfig.HELLO_ROUTING_KEY;
+
 /**
  * @author rolex
  * @since 2019
@@ -47,7 +50,7 @@ public class Publisher implements RabbitTemplate.ConfirmCallback, RabbitTemplate
     public void send(String msg) {
         CorrelationData correlationId = new CorrelationData(UUID.randomUUID().toString());
         System.out.println("开始发送消息 : " + msg.toLowerCase());
-        rabbitTemplate.convertAndSend("topicExchange", "key.#", msg, correlationId);
+        rabbitTemplate.convertAndSend(HELLO_EXCHANGE, HELLO_ROUTING_KEY, msg, correlationId);
         System.out.println("结束发送消息 : " + msg.toLowerCase());
     }
 }
