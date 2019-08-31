@@ -19,6 +19,7 @@
         <module>rpc</module>
         <module>cache</module>
         <module>springlite</module>
+        <module>multi-thread</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
