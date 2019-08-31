@@ -49,10 +49,9 @@ public class FutureTest {
         return batchSubModel;
     }
 
-    private BatchSubModel bulkInsertMultiThread(Set<EntInfoDO> set, String userId) throws ExecutionException, InterruptedException {
+    private BatchSubModel bulkInsertWithFuture(Set<EntInfoDO> set, String userId) throws ExecutionException, InterruptedException {
         BatchSubModel batchSubModel = new BatchSubModel();
         List<SubDO> subList = Lists.newArrayList();
-        List<SubDO> subOpList = Lists.newArrayList();
         List<SubDO> existList = Lists.newArrayList();
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         List<Future<Map<String, List<SubDO>>>> futureList = Lists.newArrayList();
@@ -71,6 +70,76 @@ public class FutureTest {
                     return batchSave(chunkList, userId);
                 }
             });
+            futureList.add(future);
+        }
+        executorService.shutdown();
+
+        log.info("all future completed");
+        for (Future<Map<String, List<SubDO>>> future : futureList) {
+            Map<String, List<SubDO>> map = future.get();
+            subList.addAll(map.get("add"));
+            existList.addAll(map.get("exist"));
+        }
+        batchSubModel.getExists().addAll(existList);
+        batchSubModel.getOrder().addAll(subList);
+        return batchSubModel;
+    }
+
+    private BatchSubModel bulkInsertWithCompletionService(Set<EntInfoDO> set, String userId) throws ExecutionException, InterruptedException {
+        BatchSubModel batchSubModel = new BatchSubModel();
+        List<SubDO> subList = Lists.newArrayList();
+        List<SubDO> existList = Lists.newArrayList();
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        CompletionService completionService = new ExecutorCompletionService(executorService);
+        List<Future<Map<String, List<SubDO>>>> futureList = Lists.newArrayList();
+        List<EntInfoDO> list = Lists.newArrayList(set);
+        int chunkNum = 10;
+        int chunkSize = list.size() / chunkNum + 1;
+        log.info("chunkNum={}, chunkSize={}", chunkNum, chunkSize);
+        for (int i = 0; i < 10; i++) {
+            int start = i * chunkSize;
+            int end = (i + 1) * chunkSize > list.size() ? list.size() : (i + 1) * chunkSize;
+            log.info("start={}, end={}", start, end);
+            List<EntInfoDO> chunkList = list.subList(start, end);
+            Future<Map<String, List<SubDO>>> future = completionService.submit(new Callable<Map<String, List<SubDO>>>() {
+                @Override
+                public Map<String, List<SubDO>> call() throws Exception {
+                    return batchSave(chunkList, userId);
+                }
+            });
+            futureList.add(future);
+        }
+        executorService.shutdown();
+
+        log.info("all future completed");
+        for (Future<Map<String, List<SubDO>>> future : futureList) {
+            Map<String, List<SubDO>> map = future.get();
+            subList.addAll(map.get("add"));
+            existList.addAll(map.get("exist"));
+        }
+        batchSubModel.getExists().addAll(existList);
+        batchSubModel.getOrder().addAll(subList);
+        return batchSubModel;
+    }
+
+    private BatchSubModel bulkInsertWithFutureTask(Set<EntInfoDO> set, String userId) throws ExecutionException, InterruptedException {
+        BatchSubModel batchSubModel = new BatchSubModel();
+        List<SubDO> subList = Lists.newArrayList();
+        List<SubDO> existList = Lists.newArrayList();
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        List<Future<Map<String, List<SubDO>>>> futureList = Lists.newArrayList();
+        List<EntInfoDO> list = Lists.newArrayList(set);
+        int chunkNum = 10;
+        int chunkSize = list.size() / chunkNum + 1;
+        log.info("chunkNum={}, chunkSize={}", chunkNum, chunkSize);
+        for (int i = 0; i < 10; i++) {
+            int start = i * chunkSize;
+            int end = (i + 1) * chunkSize > list.size() ? list.size() : (i + 1) * chunkSize;
+            log.info("start={}, end={}", start, end);
+            List<EntInfoDO> chunkList = list.subList(start, end);
+            Task task = new Task(chunkList, userId);
+            FutureTask futureTask = new FutureTask(task);
+            Future<Map<String, List<SubDO>>> future = (Future<Map<String, List<SubDO>>>) executorService.submit(futureTask);
             futureList.add(future);
         }
         executorService.shutdown();
@@ -119,6 +188,21 @@ public class FutureTest {
         return map;
     }
 
+    class Task implements Callable<Map<String, List<SubDO>>> {
+        List<EntInfoDO> list;
+        String userId;
+
+        public Task(List<EntInfoDO> list, String userId) {
+            this.list = list;
+            this.userId = userId;
+        }
+
+        @Override
+        public Map<String, List<SubDO>> call() throws Exception {
+            return batchSave(list, userId);
+        }
+    }
+
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         Set<EntInfoDO> set = Sets.newHashSet();
         for (int i = 0; i < 50001; i++) {
@@ -132,12 +216,29 @@ public class FutureTest {
                 batchSubModel.getOrder().size(),
                 batchSubModel.getExists().size(),
                 batchSubModel.getNotFound().size());
+
         long start1 = System.currentTimeMillis();
-        BatchSubModel batchSubModel1 = new FutureTest().bulkInsertMultiThread(set, "1");
+        BatchSubModel batchSubModel1 = new FutureTest().bulkInsertWithFuture(set, "1");
         log.info("cost {}ms, total={}, added={}, exist={}, notfound={}", (System.currentTimeMillis() - start1),
                 batchSubModel1.getOrder().size() + batchSubModel1.getExists().size() + batchSubModel1.getNotFound().size(),
                 batchSubModel1.getOrder().size(),
                 batchSubModel1.getExists().size(),
                 batchSubModel1.getNotFound().size());
+
+        long start2 = System.currentTimeMillis();
+        BatchSubModel batchSubModel2 = new FutureTest().bulkInsertWithCompletionService(set, "1");
+        log.info("cost {}ms, total={}, added={}, exist={}, notfound={}", (System.currentTimeMillis() - start2),
+                batchSubModel2.getOrder().size() + batchSubModel2.getExists().size() + batchSubModel2.getNotFound().size(),
+                batchSubModel2.getOrder().size(),
+                batchSubModel2.getExists().size(),
+                batchSubModel2.getNotFound().size());
+
+        long start3 = System.currentTimeMillis();
+        BatchSubModel batchSubModel3 = new FutureTest().bulkInsertWithCompletionService(set, "1");
+        log.info("cost {}ms, total={}, added={}, exist={}, notfound={}", (System.currentTimeMillis() - start3),
+                batchSubModel3.getOrder().size() + batchSubModel3.getExists().size() + batchSubModel3.getNotFound().size(),
+                batchSubModel3.getOrder().size(),
+                batchSubModel3.getExists().size(),
+                batchSubModel3.getNotFound().size());
     }
 }
