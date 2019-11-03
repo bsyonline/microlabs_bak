@@ -20,7 +20,8 @@
         <module>cache</module>
         <module>springlite</module>
         <module>multi-thread</module>
-        <module>concurrent</module>
+        <module>sort</module>
+        <module>tree</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
