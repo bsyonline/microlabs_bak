@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2019 bsyonline
  */
-package com.rolex.microlabs;
+package com.rolex.microlabs.lambda;
 
 import java.util.ArrayList;
 import java.util.Arrays;

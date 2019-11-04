@@ -1,4 +1,4 @@
-package com.rolex.microlabs;
+package com.rolex.microlabs.jvm.classloader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -17,13 +17,14 @@ import java.util.jar.JarInputStream;
  * @Since 29/10/2019
  */
 public class MyClassLoader extends URLClassLoader {
-    
+
     String basePath;
-    
+
     public MyClassLoader(URL[] urls) {
         super(urls);
+        this.basePath = urls[0].getPath();
     }
-    
+
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         Class clazz = this.findLoadedClass(name);
@@ -41,20 +42,22 @@ public class MyClassLoader extends URLClassLoader {
         }
         return clazz;
     }
-    
-    private byte[] getClassData(String path, String packageName) throws IOException {
-        
+
+    private byte[] getClassData(String path, String name) throws IOException {
         if (path.endsWith(".jar")) {
-            return getClassDataFromJarFile(path);
+            return getClassDataFromJarFile(path, name);
         } else {
-            return getClassDataFromFile(path, packageName);
+            return getClassDataFromFile(path, name);
         }
-        
     }
-    
+
     private byte[] getClassDataFromFile(String path, String packageName) throws IOException {
-        InputStream is = null;
         String className = "file://" + path + packageName.replace(".", "/") + ".class";
+        return getBytes(className);
+    }
+
+    private byte[] getBytes(String className) throws IOException {
+        InputStream is;
         URL url = new URL(className);
         byte[] buf = new byte[1024];
         is = url.openStream();
@@ -63,48 +66,46 @@ public class MyClassLoader extends URLClassLoader {
         while ((length = is.read(buf)) != -1) {
             bos.write(buf, 0, length);
         }
-        return bos.toByteArray();
+        byte[] bytes = bos.toByteArray();
+        bos.flush();
+        bos.close();
+        is.close();
+        return bytes;
     }
-    
-    public byte[] getClassDataFromJarFile(String path) throws IOException {
+
+    public byte[] getClassDataFromJarFile(String path, String name) throws IOException {
         JarInputStream jis = new JarInputStream(new FileInputStream(path));
         JarEntry jarEntry = jis.getNextJarEntry();
         while (jarEntry != null) {
-            String name = jarEntry.getName();
-            if (name.endsWith("Cat.class")) {
-                System.out.println(name);
+            String fileName = jarEntry.getName();
+            if (fileName.endsWith(name.replace(".", "/") + ".class")) {
                 jarEntry = null;
-                
-                URL url = new URL(name);
-                InputStream is = url.openStream();
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                byte[] buf = new byte[1024];
-                int length = 0;
-                while ((length = is.read(buf)) != -1) {
-                    bos.write(buf, 0, length);
-                }
-                return bos.toByteArray();
-                
+                String fullPath = "jar:file:" + path + "!/" + fileName;
+                return getBytes(fullPath);
             } else {
                 jarEntry = jis.getNextJarEntry();
             }
         }
         return null;
     }
-    
+
     public static void main(String[] args) throws MalformedURLException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
-//        String path = "file:///home/rolex";
-        String path = "jar:file:/home/rolex/shako-1.0-SNAPSHOT.jar!/com/rolex/shako/bio/Cat.class";
-        String name = "com.rolex.shako.bio.Cat";
+        String path = "file://D:/Dev/IdeaProjects/microlabs/java8/data/";
+
+        String name = "com.rolex.microlabs.classloader.Counter";
         MyClassLoader classLoader = new MyClassLoader(new URL[]{new URL(path)});
-        
         Class clazz = classLoader.loadClass(name);
-        
         Object obj = clazz.newInstance();
-        
-        Method method = clazz.getDeclaredMethod("say");
-        
+        Method method = clazz.getDeclaredMethod("add");
         method.invoke(obj, new Object[]{});
-        
+
+        String path1 = "file://D:/Dev/IdeaProjects/microlabs/java8/data/counter.jar";
+        String name1 = "com.rolex.microlabs.classloader.Counter";
+        MyClassLoader classLoader1 = new MyClassLoader(new URL[]{new URL(path1)});
+        Class clazz1 = classLoader1.loadClass(name1);
+        Object obj1 = clazz1.newInstance();
+        Method method1 = clazz1.getDeclaredMethod("add");
+        method1.invoke(obj1, new Object[]{});
+
     }
 }

@@ -1,6 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Java template
-*.class
+#*.class
 
 # BlueJ files
 *.ctxt
@@ -9,7 +9,7 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
+#*.jar
 *.war
 *.ear
 
