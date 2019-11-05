@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2019 bsyonline
  */
-package com.rolex.tree;
+package com.rolex.microlabs.tree;
 
 /**
  * @author rolex

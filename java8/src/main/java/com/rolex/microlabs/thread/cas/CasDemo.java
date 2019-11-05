@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2019 bsyonline
  */
-package com.rolex.microlabs.cas;
+package com.rolex.microlabs.thread.cas;
 
 import sun.misc.Unsafe;
 

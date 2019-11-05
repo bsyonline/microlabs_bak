@@ -1,4 +1,4 @@
-package com.rolex.microlabs;
+package com.rolex.microlabs.cache.lru;
 
 import java.util.LinkedHashMap;
 

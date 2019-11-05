@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2019 bsyonline
  */
-package com.rolex.microlabs.pool;
+package com.rolex.microlabs.thread.pool;
 
 import java.util.concurrent.*;
 
@@ -9,7 +9,7 @@ import java.util.concurrent.*;
  * @author rolex
  * @since 2019
  */
-public class ThreadPoolDemo {
+public class ThreadPoolTest {
 
     public void test1() throws InterruptedException {
         ThreadPoolExecutor executor = new ThreadPoolExecutor(5, 5,
@@ -73,7 +73,7 @@ public class ThreadPoolDemo {
 
 
     public static void main(String[] args) throws InterruptedException {
-        ThreadPoolDemo demo = new ThreadPoolDemo();
+        ThreadPoolTest demo = new ThreadPoolTest();
         demo.test1();
 //        demo.test2();
 //        demo.test3();

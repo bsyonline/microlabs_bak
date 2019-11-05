@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2019 bsyonline
  */
-package com.rolex.microlabs.future;
+package com.rolex.microlabs.thread.future;
 
 import com.google.common.collect.Lists;
 import lombok.Data;
