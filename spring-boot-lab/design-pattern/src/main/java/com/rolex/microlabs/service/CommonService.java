@@ -26,5 +26,19 @@ public class CommonService {
         }
     }
 
+    public void compress(CompressCallback callback, String path) throws Exception {
+        callback.doCompress(new Compress() {
+            @Override
+            public String type() {
+                return "zip";
+            }
+    
+            @Override
+            public String compress(String path) {
+                System.out.println("compress callback" + path);
+                return null;
+            }
+        });
+    }
 
 }
